@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SOSRIM - PRO</title>
+    <style>
+        :root {
+            --verde: #d1fae5; --txt-verde: #065f46; --amarelo: #fef3c7; 
+            --vermelho: #fee2e2; --azul: #dbeafe; --roxo: #f3e8ff;
+        }
+        body { margin: 0; font-family: -apple-system, sans-serif; background: #f8fafc; color: #1e293b; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: #0f172a; color: white; padding: 15px; text-align: center; font-weight: 900; font-size: 1.2rem; border-bottom: 4px solid #3b82f6; }
+        .tab-content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .card { 
+            aspect-ratio: 1/1; border-radius: 18px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; font-weight: 900; font-size: 1.8rem;
+            border: 2px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        /* Cores do SOSRIM */
+        .verde { background: #d1fae5; color: #065f46; border-color: #10b981; }
+        .azul { background: #dbeafe; color: #1e40af; border-color: #3b82f6; }
+        .amarelo { background: #fef3c7; color: #92400e; border-color: #f59e0b; }
+        .vermelho { background: #fee2e2; color: #991b1b; border-color: #ef4444; animation: pulse 2s infinite; }
+        .roxo { background: #f3e8ff; color: #5b21b6; border-color: #8b5cf6; }
+        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .nav-item { border: none; background: none; font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; }
+        .active { color: #0f172a; border-bottom: 3px solid #0f172a; }
+        .hidden { display: none; }
+        .h-item { padding: 15px; border-bottom: 1px solid #eee; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">🚑 SOSRIM 1.0</div>
+    
+    <div id="tab1" class="tab-content">
+        <div id="grid" class="grid"></div>
+    </div>
+    <div id="tab2" class="tab-content hidden">
+        <h3 style="text-align:center">📍 Rotas Sugeridas</h3>
+        <div id="route-list" style="padding:10px; background:white; border-radius:15px; text-align:center; color:#64748b">Nenhuma rota ativa no momento</div>
+    </div>
+    <div id="tab3" class="tab-content hidden">
+        <h3 style="text-align:center">🏥 Hospitais</h3>
+        <div id="hlist" style="background:white; border-radius:15px; overflow:hidden"></div>
+    </div>
+    <div id="tab4" class="tab-content hidden">
+        <h3 style="text-align:center">🚜 Gestão de Frota</h3>
+        <button style="width:100%; padding:15px; border-radius:15px; background:#0f172a; color:white; border:none; font-weight:bold">+ Adicionar Máquina</button>
+    </div>
+    <div id="tab5" class="tab-content hidden">
+        <h3 style="text-align:center">📝 Histórico do Dia</h3>
+        <div id="logs" style="font-size:12px; font-family:monospace; background:#fff; padding:10px; border-radius:10px; border:1px solid #eee"></div>
+    </div>
+
+    <div class="nav">
+        <button onclick="st(1)" class="nav-item active">Painel</button>
+        <button onclick="st(2)" class="nav-item">Rotas</button>
+        <button onclick="st(3)" class="nav-item">Hosp</button>
+        <button onclick="st(4)" class="nav-item">Frota</button>
+        <button onclick="st(5)" class="nav-item">Log</button>
+    </div>
+
+    <script>
+        const sts = ['verde', 'azul', 'amarelo', 'vermelho', 'roxo'];
+        let mqs = Array.from({length: 18}, (_, i) => ({ id: i+1, s: 'verde' }));
+        const hs = ["Erasto Gaertner", "Erastinho", "Marcelino Champagnat", "Nações", "Oswaldo Cruz", "Fraturas XV", "Pilar", "Graças", "Nossa Saúde", "INC", "Trabalhador", "Marillac", "Papa Francisco", "Yoshimi", "Alberto"];
+
+        function render() {
+            document.getElementById('grid').innerHTML = mqs.map(m => `
+                <div class="card \({m.s}" onclick="nxt(\){m.id})">${m.id}</div>
+            `).join('');
+        }
+
+        function nxt(id) {
+            let m = mqs.find(x => x.id === id);
+            m.s = sts[(sts.indexOf(m.s) + 1) % sts.length];
+            log(`MÁQUINA \({id} alterada para \){m.s.toUpperCase()}`);
+            render();
+        }
+
+        function st(n) {
+            for(let i=1; i<=5; i++) document.getElementById('tab'+i).classList.toggle('hidden', i !== n);
+            document.querySelectorAll('.nav-item').forEach((b, i) => b.classList.toggle('active', i === n-1));
+        }
+
+        function log(t) {
+            const l = document.getElementById('logs');
+            l.innerHTML = `<div>[\({new Date().toLocaleTimeString()}] \){t}</div>` + l.innerHTML;
+        }
+
+        window.onload = () => {
+            render();
+            document.getElementById('hlist').innerHTML = hs.map(h => `<div class="h-item">🏥 ${h}</div>`).join('');
+        };
+    </script>
+</body>
+</html>
